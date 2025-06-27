@@ -1,3 +1,5 @@
+// routes/v1/swimmers.js
+
 const express = require('express');
 const router = express.Router();
 const swimmerController = require('../../controllers/swimmerController');

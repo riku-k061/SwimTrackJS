@@ -1,3 +1,5 @@
+// src/middleware/errorHandler.js
+
 const { logError, errorTypes, createError } = require('../utils/logger');
 
 const formatErrorResponse = error => {

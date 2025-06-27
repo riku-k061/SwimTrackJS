@@ -1,3 +1,6 @@
+
+// src/controllers/controllerFactory.js
+
 const { createError, errorTypes } = require('../utils/logger');
 
 const createResourceController = service => ({

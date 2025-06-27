@@ -1,3 +1,6 @@
+
+// src/services/indexManager.js
+
 const { QueryBuilder } = require('../utils/queryBuilder');
 const { readData } = require('../utils/fileOps');
 const path = require('path');

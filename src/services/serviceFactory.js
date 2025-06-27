@@ -1,4 +1,5 @@
-// File: src/services/serviceFactory.js
+// src/services/serviceFactory.
+
 const db = require('../db');
 const { executeTransaction } = require('../utils/transactionManager');
 const auditService = require('./auditService');

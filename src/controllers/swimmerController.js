@@ -1,3 +1,5 @@
+// src/controllers/swimmerController.js
+
 const swimmerService = require('../services/swimmerService');
 const { createResourceController } = require('./controllerFactory');
 
