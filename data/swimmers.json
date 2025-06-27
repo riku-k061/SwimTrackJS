@@ -1,0 +1,10 @@
+[
+  {
+    "id": "f48d3047-933f-4053-af2a-3d720476d9de",
+    "firstName": "Bob",
+    "lastName": "Brown",
+    "email": "bob@example.com",
+    "dob": "2008-01-20",
+    "createdAt": "2025-06-27T03:39:43.600Z"
+  }
+]
