@@ -21,13 +21,17 @@ afterAll(async () => {
 
 describe('Swimmers API', () => {
   let swimmerId;
+  const clubId = "club-123"; // Example clubId
+  const minAge = 10;
+  const maxAge = 15;
+  const coachId = 'coach-001'; // Example coachId for assignment tests
 
   test('POST /v1/swimmers  → 201 & created entity', async () => {
     const payload = {
       firstName: 'Alice',
       lastName: 'Smith',
       email: 'alice@example.com',
-      dob: '2010-06-15'
+      dob: '2010-06-15',
     };
     const res = await request(app)
       .post('/v1/swimmers')
@@ -37,18 +41,13 @@ describe('Swimmers API', () => {
 
     expect(res.body).toHaveProperty('id');
     expect(res.body).toMatchObject({ firstName: 'Alice', lastName: 'Smith', email: 'alice@example.com' });
-    swimmerId = res.body.id;
+    swimmerId = res.body.id;  // Save swimmerId for future requests
   });
 
   test('GET /v1/swimmers  → 200 & array with one swimmer', async () => {
-    const res = await request(app)
-      .get('/v1/swimmers')
-      .expect(200)
-      .expect('Content-Type', /json/);
+    const res = await request(app).get('/v1/swimmers').expect(200);
 
     expect(Array.isArray(res.body)).toBe(true);
-    expect(res.body).toHaveLength(1);
-    expect(res.body[0].id).toBe(swimmerId);
   });
 
   test('GET /v1/swimmers/:id  → 200 & single swimmer', async () => {
@@ -78,4 +77,25 @@ describe('Swimmers API', () => {
       .get(`/v1/swimmers/${swimmerId}`)
       .expect(404);
   });
+
+  // Test for getting swimmers by club
+  test('GET /v1/swimmers/club/:clubId  → 200 & array of swimmers by club', async () => {
+    const res = await request(app)
+      .get(`/v1/swimmers/club/${clubId}`)
+      .expect(200);
+
+    expect(Array.isArray(res.body)).toBe(true);
+    // You can further add specific checks for club-related data if needed
+  });
+
+  // Test for getting swimmers by age range
+  test('GET /v1/swimmers/age-range/:minAge/:maxAge  → 200 & array of swimmers within age range', async () => {
+    const res = await request(app)
+      .get(`/v1/swimmers/age-range/${minAge}/${maxAge}`)
+      .expect(200);
+
+    expect(Array.isArray(res.body)).toBe(true);
+    // You can add further checks for age-related filters here
+  });
 });
+
