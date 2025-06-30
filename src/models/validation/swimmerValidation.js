@@ -65,4 +65,10 @@ const validateSwimmer = async (s, isUpdate=false) => {
   return validateSwimmerAgainstDB(s, isUpdate);
 };
 
-module.exports = { validateSwimmer };
+const validateCoachAssignment = async (coachId) => {
+  const coaches = await getEntities('coaches');
+  if (!coaches.some(coach => coach.id === coachId)) return ['Coach not found'];
+  return [];
+};
+
+module.exports = { validateSwimmer, validateCoachAssignment };

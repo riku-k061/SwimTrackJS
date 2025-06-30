@@ -1,5 +1,4 @@
-// routes/v1/swimmers.js
-
+// src/routes/v1/swimmers.js
 const express = require('express');
 const router = express.Router();
 const swimmerController = require('../../controllers/swimmerController');
@@ -18,5 +17,9 @@ router.delete('/:id', swimmerController.deleteSwimmer);
 router.get('/club/:clubId', swimmerController.getSwimmersByClub);
 router.get('/age-range/:minAge/:maxAge', swimmerController.getSwimmersByAgeRange);
 router.get('/:id/delete-impact', swimmerController.getDeleteImpact);
+
+// New routes for coach assignment
+router.put('/:id/assign-coach', swimmerController.assignCoach);
+router.put('/:id/unassign-coach', swimmerController.unassignCoach);
 
 module.exports = router;

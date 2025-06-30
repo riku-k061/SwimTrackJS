@@ -1,5 +1,4 @@
 // src/services/swimmerService.js
-
 const { createResourceService } = require('./serviceFactory');
 const { validateSwimmer } = require('../models/validation/swimmerValidation');
 const db = require('../db');
@@ -25,10 +24,6 @@ module.exports = {
   },
 
   getAll: async opts => {
-    // In test mode, bypass the in-memory index to see DB writes immediately
-    if (process.env.NODE_ENV === 'test') {
-      return await db.getEntities('swimmers');
-    }
     const qb = indexManager.getQueryBuilder('swimmers');
     if (!qb) return base.getAll(opts);
     const { page, limit, sort, direction = 'asc', minAge, maxAge, clubId, firstName, lastName, ...others } = opts;
@@ -40,6 +35,24 @@ module.exports = {
     qb.sort(sort || ['lastName', 'firstName'], direction);
     if (page || limit) qb.paginate(page, limit);
     return qb.execute();
+  },
+
+  assignCoach: async (id, coachId) => {
+    const swimmer = await db.getEntityById('swimmers', id);
+    if (!swimmer) throw new Error('Swimmer not found');
+    const coach = await db.getEntityById('coaches', coachId);
+    if (!coach) throw new Error('Coach not found');
+
+    const updatedSwimmer = await db.addRelationship('swimmers', id, 'coachIds', coachId);
+    return updatedSwimmer;
+  },
+
+  unassignCoach: async (id) => {
+    const swimmer = await db.getEntityById('swimmers', id);
+    if (!swimmer) throw new Error('Swimmer not found');
+
+    const updatedSwimmer = await db.removeRelationship('swimmers', id, 'coachIds', swimmer.coachId);
+    return updatedSwimmer;
   },
 
   getSwimmersByClub: async clubId => {
