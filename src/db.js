@@ -41,23 +41,25 @@ const deleteEntity = async (entityType, id) =>
     entities.filter(e => e.id !== id)
   , []).then(() => true);
 
-const addRelationship = async (entityType, id, relType, relId) =>
-  atomicUpdate(getFilePath(entityType), (entities = []) => {
-    const ent = entities.find(e => e.id === id);
-    if (!ent) return entities;
-    ent[relType] = ent[relType] || [];
-    if (!ent[relType].includes(relId)) ent[relType].push(relId);
+const addRelationship = async (entityType, id, relType, relId) => {
+  return atomicUpdate(getFilePath(entityType), (entities = []) => {
+    const entity = entities.find(e => e.id === id);
+    if (!entity) return entities;
+    entity[relType] = entity[relType] || [];
+    if (!entity[relType].includes(relId)) entity[relType].push(relId);
     return entities;
   }, []).then(list => list.find(e => e.id === id) || null);
+};
 
-const removeRelationship = async (entityType, id, relType, relId) =>
-  atomicUpdate(getFilePath(entityType), (entities = []) => {
-    const ent = entities.find(e => e.id === id);
-    if (ent && ent[relType]) {
-      ent[relType] = ent[relType].filter(r => r !== relId);
+const removeRelationship = async (entityType, id, relType, relId) => {
+  return atomicUpdate(getFilePath(entityType), (entities = []) => {
+    const entity = entities.find(e => e.id === id);
+    if (entity && entity[relType]) {
+      entity[relType] = entity[relType].filter(r => r !== relId);
     }
     return entities;
   }, []).then(list => list.find(e => e.id === id) || null);
+};
 
 module.exports = {
   initializeDb,
