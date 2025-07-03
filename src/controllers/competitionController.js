@@ -5,8 +5,14 @@ const competitionController = {
   // Create a new competition
   create: async (req, res, next) => {
     try {
-      const competition = await competitionService.create(req.body, req.user.id);
-      res.status(201).json(competition);
+      const competition = await competitionService.create(req.body);
+      console.log('competition--->', competition);
+      
+      res.status(201).json({
+        success: true,
+        data: competition,
+        message: 'Coach created successfully'
+      });
     } catch (error) {
       next(error);
     }
@@ -39,7 +45,7 @@ const competitionController = {
   // Update a competition
   update: async (req, res, next) => {
     try {
-      const competition = await competitionService.update(req.params.id, req.body, req.user.id);
+      const competition = await competitionService.update(req.params.id, req.body);
       res.status(200).json(competition);
     } catch (error) {
       next(error);
@@ -49,7 +55,7 @@ const competitionController = {
   // Delete a competition
   delete: async (req, res, next) => {
     try {
-      const result = await competitionService.delete(req.params.id, req.user.id);
+      const result = await competitionService.delete(req.params.id);
       res.status(200).json(result);
     } catch (error) {
       next(error);
@@ -59,7 +65,7 @@ const competitionController = {
   // Add an event to a competition
   addEvent: async (req, res, next) => {
     try {
-      const event = await competitionService.addEvent(req.params.id, req.body, req.user.id);
+      const event = await competitionService.addEvent(req.params.id, req.body);
       res.status(201).json(event);
     } catch (error) {
       next(error);
@@ -72,8 +78,7 @@ const competitionController = {
       const event = await competitionService.updateEvent(
         req.params.competitionId, 
         req.params.eventId, 
-        req.body, 
-        req.user.id
+        req.body
       );
       res.status(200).json(event);
     } catch (error) {
@@ -86,8 +91,7 @@ const competitionController = {
     try {
       const result = await competitionService.removeEvent(
         req.params.competitionId, 
-        req.params.eventId, 
-        req.user.id
+        req.params.eventId
       );
       res.status(200).json(result);
     } catch (error) {

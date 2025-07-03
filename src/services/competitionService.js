@@ -8,13 +8,13 @@ const COMPETITIONS_FILE = 'data/competitions.json';
 
 // Helper to get all competitions
 const getAllCompetitions = async () => {
-  const data = await fileOps.readFile(COMPETITIONS_FILE);
+  const data = await fileOps.readData(COMPETITIONS_FILE);
   return data.competitions;
 };
 
 // Helper to save all competitions
 const saveCompetitions = async (competitions, lastId) => {
-  await fileOps.writeFile(COMPETITIONS_FILE, { 
+  await fileOps.writeData(COMPETITIONS_FILE, { 
     competitions, 
     _lastId: lastId || competitions.length 
   });
@@ -22,11 +22,11 @@ const saveCompetitions = async (competitions, lastId) => {
 
 const competitionService = {
   // Create a new competition
-  create: async (competitionData, userId) => {
+  create: async (competitionData) => {
     const { value, error } = validateCompetition(competitionData);
     if (error) throw error;
     
-    const data = await fileOps.readFile(COMPETITIONS_FILE);
+    const data = await fileOps.readData(COMPETITIONS_FILE);
 
     const newCompetition = {
       ...value,
@@ -38,10 +38,7 @@ const competitionService = {
     data.competitions.push(newCompetition);
     data._lastId += 1;
     
-    await fileOps.writeFile(COMPETITIONS_FILE, data);
-    
-    // Log the action
-    await auditService.logAction(userId, 'competition_create', newCompetition.id, newCompetition);
+    await fileOps.writeData(COMPETITIONS_FILE, data);
     
     return newCompetition;
   },
@@ -75,11 +72,11 @@ const competitionService = {
   },
   
   // Update a competition
-  update: async (id, competitionData, userId) => {
+  update: async (id, competitionData) => {
     const { value, error } = validateCompetition(competitionData);
     if (error) throw error;
     
-    const data = await fileOps.readFile(COMPETITIONS_FILE);
+    const data = await fileOps.readData(COMPETITIONS_FILE);
     const index = data.competitions.findIndex(c => c.id === id);
     
     if (index === -1) {
@@ -95,17 +92,14 @@ const competitionService = {
     
     data.competitions[index] = updatedCompetition;
     
-    await fileOps.writeFile(COMPETITIONS_FILE, data);
-    
-    // Log the action
-    await auditService.logAction(userId, 'competition_update', id, updatedCompetition);
+    await fileOps.writeData(COMPETITIONS_FILE, data);
     
     return updatedCompetition;
   },
   
   // Delete a competition
   delete: async (id, userId) => {
-    const data = await fileOps.readFile(COMPETITIONS_FILE);
+    const data = await fileOps.readData(COMPETITIONS_FILE);
     const index = data.competitions.findIndex(c => c.id === id);
     
     if (index === -1) {
@@ -115,20 +109,17 @@ const competitionService = {
     const deletedCompetition = data.competitions[index];
     data.competitions.splice(index, 1);
     
-    await fileOps.writeFile(COMPETITIONS_FILE, data);
-    
-    // Log the action
-    await auditService.logAction(userId, 'competition_delete', id, deletedCompetition);
+    await fileOps.writeData(COMPETITIONS_FILE, data);
     
     return { success: true, id };
   },
   
   // Add an event to a competition
-  addEvent: async (competitionId, eventData, userId) => {
+  addEvent: async (competitionId, eventData) => {
     const { value, error } = validateEvent(eventData);
     if (error) throw error;
     
-    const data = await fileOps.readFile(COMPETITIONS_FILE);
+    const data = await fileOps.readData(COMPETITIONS_FILE);
     const index = data.competitions.findIndex(c => c.id === competitionId);
     
     if (index === -1) {
@@ -147,20 +138,17 @@ const competitionService = {
     data.competitions[index].events.push(newEvent);
     data.competitions[index].updatedAt = new Date().toISOString();
     
-    await fileOps.writeFile(COMPETITIONS_FILE, data);
-    
-    // Log the action
-    await auditService.logAction(userId, 'competition_event_add', competitionId, newEvent);
+    await fileOps.writeData(COMPETITIONS_FILE, data);
     
     return newEvent;
   },
   
   // Update an event in a competition
-  updateEvent: async (competitionId, eventId, eventData, userId) => {
+  updateEvent: async (competitionId, eventId, eventData) => {
     const { value, error } = validateEvent(eventData);
     if (error) throw error;
     
-    const data = await fileOps.readFile(COMPETITIONS_FILE);
+    const data = await fileOps.readData(COMPETITIONS_FILE);
     const competitionIndex = data.competitions.findIndex(c => c.id === competitionId);
     
     if (competitionIndex === -1) {
@@ -186,17 +174,14 @@ const competitionService = {
     data.competitions[competitionIndex].events[eventIndex] = updatedEvent;
     data.competitions[competitionIndex].updatedAt = new Date().toISOString();
     
-    await fileOps.writeFile(COMPETITIONS_FILE, data);
-    
-    // Log the action
-    await auditService.logAction(userId, 'competition_event_update', eventId, updatedEvent);
+    await fileOps.writeData(COMPETITIONS_FILE, data);
     
     return updatedEvent;
   },
   
   // Remove an event from a competition
-  removeEvent: async (competitionId, eventId, userId) => {
-    const data = await fileOps.readFile(COMPETITIONS_FILE);
+  removeEvent: async (competitionId, eventId) => {
+    const data = await fileOps.readData(COMPETITIONS_FILE);
     const competitionIndex = data.competitions.findIndex(c => c.id === competitionId);
     
     if (competitionIndex === -1) {
@@ -217,10 +202,7 @@ const competitionService = {
     data.competitions[competitionIndex].events.splice(eventIndex, 1);
     data.competitions[competitionIndex].updatedAt = new Date().toISOString();
     
-    await fileOps.writeFile(COMPETITIONS_FILE, data);
-    
-    // Log the action
-    await auditService.logAction(userId, 'competition_event_remove', eventId, removedEvent);
+    await fileOps.writeData(COMPETITIONS_FILE, data);
     
     return { success: true, id: eventId };
   }

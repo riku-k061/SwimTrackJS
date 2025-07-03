@@ -10,7 +10,7 @@ const PARTICIPANTS_FILE = 'data/competition-participants.json';
 
 const participantService = {
   // Register a new participant for a competition
-  register: async (participantData, userId) => {
+  register: async (participantData) => {
     const { value, error } = validateParticipant(participantData);
     if (error) throw error;
     
@@ -48,7 +48,7 @@ const participantService = {
     }
     
     // Check if swimmer is already registered for this competition
-    const data = await fileOps.readFile(PARTICIPANTS_FILE);
+    const data = await fileOps.readData(PARTICIPANTS_FILE);
     const existingParticipation = data.participants.find(p => 
       p.competitionId === value.competitionId && p.swimmerId === value.swimmerId
     );
@@ -69,18 +69,14 @@ const participantService = {
     data.participants.push(newParticipant);
     data._lastId += 1;
     
-    await fileOps.writeFile(PARTICIPANTS_FILE, data);
-    
-    // Log the action
-    await auditService.logAction(userId, 'participant_register', newParticipant.id, 
-      { competitionId: value.competitionId, swimmerId: value.swimmerId });
+    await fileOps.writeData(PARTICIPANTS_FILE, data);
     
     return newParticipant;
   },
   
   // Get all participants for a competition
   getByCompetition: async (competitionId, includeSwimmerDetails = false) => {
-    const data = await fileOps.readFile(PARTICIPANTS_FILE);
+    const data = await fileOps.readData(PARTICIPANTS_FILE);
     const participants = data.participants.filter(p => p.competitionId === competitionId);
     
     // If swimmer details are requested, fetch and include them
@@ -106,7 +102,7 @@ const participantService = {
   
   // Get all competitions for a swimmer
   getBySwimmer: async (swimmerId, includeCompetitionDetails = false) => {
-    const data = await fileOps.readFile(PARTICIPANTS_FILE);
+    const data = await fileOps.readData(PARTICIPANTS_FILE);
     const participations = data.participants.filter(p => p.swimmerId === swimmerId);
     
     // If competition details are requested, fetch and include them
@@ -132,13 +128,13 @@ const participantService = {
   
   // Get participant by ID
   getById: async (id) => {
-    const data = await fileOps.readFile(PARTICIPANTS_FILE);
+    const data = await fileOps.readData(PARTICIPANTS_FILE);
     return data.participants.find(p => p.id === id);
   },
   
   // Get participant by competition ID and swimmer ID
   getByCompetitionAndSwimmer: async (competitionId, swimmerId) => {
-    const data = await fileOps.readFile(PARTICIPANTS_FILE);
+    const data = await fileOps.readData(PARTICIPANTS_FILE);
     return data.participants.find(p => 
       p.competitionId === competitionId && p.swimmerId === swimmerId
     );
@@ -153,7 +149,7 @@ const participantService = {
     
     if (error) throw error;
     
-    const data = await fileOps.readFile(PARTICIPANTS_FILE);
+    const data = await fileOps.readData(PARTICIPANTS_FILE);
     const index = data.participants.findIndex(p => p.id === id);
     
     if (index === -1) {
@@ -194,7 +190,7 @@ const participantService = {
     
     data.participants[index] = updatedParticipant;
     
-    await fileOps.writeFile(PARTICIPANTS_FILE, data);
+    await fileOps.writeData(PARTICIPANTS_FILE, data);
     
     // Log the action
     await auditService.logAction(userId, 'participant_update', id, updatedParticipant);
@@ -207,7 +203,7 @@ const participantService = {
     const { value, error } = validateParticipantEvent(eventData);
     if (error) throw error;
     
-    const data = await fileOps.readFile(PARTICIPANTS_FILE);
+    const data = await fileOps.readData(PARTICIPANTS_FILE);
     const participantIndex = data.participants.findIndex(p => p.id === participantId);
     
     if (participantIndex === -1) {
@@ -237,7 +233,7 @@ const participantService = {
     participant.events.push(value);
     participant.updatedAt = new Date().toISOString();
     
-    await fileOps.writeFile(PARTICIPANTS_FILE, data);
+    await fileOps.writeData(PARTICIPANTS_FILE, data);
     
     // Log the action
     await auditService.logAction(userId, 'participant_event_add', participantId, value);
@@ -254,7 +250,7 @@ const participantService = {
     
     if (error) throw error;
     
-    const data = await fileOps.readFile(PARTICIPANTS_FILE);
+    const data = await fileOps.readData(PARTICIPANTS_FILE);
     const participantIndex = data.participants.findIndex(p => p.id === participantId);
     
     if (participantIndex === -1) {
@@ -278,7 +274,7 @@ const participantService = {
     
     participant.updatedAt = new Date().toISOString();
     
-    await fileOps.writeFile(PARTICIPANTS_FILE, data);
+    await fileOps.writeData(PARTICIPANTS_FILE, data);
     
     // Log the action
     await auditService.logAction(userId, 'participant_event_update', eventId, value);
@@ -288,7 +284,7 @@ const participantService = {
   
   // Remove an event from a participant
   removeEvent: async (participantId, eventId, userId) => {
-    const data = await fileOps.readFile(PARTICIPANTS_FILE);
+    const data = await fileOps.readData(PARTICIPANTS_FILE);
     const participantIndex = data.participants.findIndex(p => p.id === participantId);
     
     if (participantIndex === -1) {
@@ -313,7 +309,7 @@ const participantService = {
     participant.events.splice(eventIndex, 1);
     participant.updatedAt = new Date().toISOString();
     
-    await fileOps.writeFile(PARTICIPANTS_FILE, data);
+    await fileOps.writeData(PARTICIPANTS_FILE, data);
     
     // Log the action
     await auditService.logAction(userId, 'participant_event_remove', eventId, removedEvent);
@@ -323,7 +319,7 @@ const participantService = {
   
   // Remove a participant
   remove: async (id, userId) => {
-    const data = await fileOps.readFile(PARTICIPANTS_FILE);
+    const data = await fileOps.readData(PARTICIPANTS_FILE);
     const participantIndex = data.participants.findIndex(p => p.id === id);
     
     if (participantIndex === -1) {
@@ -347,7 +343,7 @@ const participantService = {
     // Remove the participant
     data.participants.splice(participantIndex, 1);
     
-    await fileOps.writeFile(PARTICIPANTS_FILE, data);
+    await fileOps.writeData(PARTICIPANTS_FILE, data);
     
     // Log the action
     await auditService.logAction(userId, 'participant_remove', id, removedParticipant);
