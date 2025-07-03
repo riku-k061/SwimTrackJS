@@ -141,7 +141,7 @@ const participantService = {
   },
   
   // Update a participant
-  update: async (id, participantData, userId) => {
+  update: async (id, participantData) => {
     const { value, error } = validateParticipant({
       ...participantData,
       id // Add ID so validation knows this is an update
@@ -192,14 +192,11 @@ const participantService = {
     
     await fileOps.writeData(PARTICIPANTS_FILE, data);
     
-    // Log the action
-    await auditService.logAction(userId, 'participant_update', id, updatedParticipant);
-    
     return updatedParticipant;
   },
   
   // Add an event to a participant
-  addEvent: async (participantId, eventData, userId) => {
+  addEvent: async (participantId, eventData) => {
     const { value, error } = validateParticipantEvent(eventData);
     if (error) throw error;
     
@@ -235,14 +232,11 @@ const participantService = {
     
     await fileOps.writeData(PARTICIPANTS_FILE, data);
     
-    // Log the action
-    await auditService.logAction(userId, 'participant_event_add', participantId, value);
-    
     return value;
   },
   
   // Update a participant event
-  updateEvent: async (participantId, eventId, eventData, userId) => {
+  updateEvent: async (participantId, eventId, eventData) => {
     const { value, error } = validateParticipantEvent({
       ...eventData,
       eventId // Ensure eventId is preserved
@@ -276,14 +270,11 @@ const participantService = {
     
     await fileOps.writeData(PARTICIPANTS_FILE, data);
     
-    // Log the action
-    await auditService.logAction(userId, 'participant_event_update', eventId, value);
-    
     return participant.events[eventIndex];
   },
   
   // Remove an event from a participant
-  removeEvent: async (participantId, eventId, userId) => {
+  removeEvent: async (participantId, eventId) => {
     const data = await fileOps.readData(PARTICIPANTS_FILE);
     const participantIndex = data.participants.findIndex(p => p.id === participantId);
     
@@ -311,14 +302,11 @@ const participantService = {
     
     await fileOps.writeData(PARTICIPANTS_FILE, data);
     
-    // Log the action
-    await auditService.logAction(userId, 'participant_event_remove', eventId, removedEvent);
-    
     return { success: true, eventId };
   },
   
   // Remove a participant
-  remove: async (id, userId) => {
+  remove: async (id) => {
     const data = await fileOps.readData(PARTICIPANTS_FILE);
     const participantIndex = data.participants.findIndex(p => p.id === id);
     
@@ -344,9 +332,6 @@ const participantService = {
     data.participants.splice(participantIndex, 1);
     
     await fileOps.writeData(PARTICIPANTS_FILE, data);
-    
-    // Log the action
-    await auditService.logAction(userId, 'participant_remove', id, removedParticipant);
     
     return { success: true, id };
   },

@@ -5,7 +5,7 @@ const participantController = {
   // Register a new participant
   register: async (req, res, next) => {
     try {
-      const participant = await participantService.register(req.body, req.user.id);
+      const participant = await participantService.register(req.body);
       res.status(201).json(participant);
     } catch (error) {
       // Handle specific errors
@@ -65,7 +65,7 @@ const participantController = {
   // Update a participant
   update: async (req, res, next) => {
     try {
-      const participant = await participantService.update(req.params.id, req.body, req.user.id);
+      const participant = await participantService.update(req.params.id, req.body);
       res.status(200).json(participant);
     } catch (error) {
       // Handle specific errors
@@ -82,7 +82,7 @@ const participantController = {
   // Add an event to a participant
   addEvent: async (req, res, next) => {
     try {
-      const event = await participantService.addEvent(req.params.id, req.body, req.user.id);
+      const event = await participantService.addEvent(req.params.id, req.body);
       res.status(201).json(event);
     } catch (error) {
       // Handle specific errors
@@ -103,8 +103,7 @@ const participantController = {
       const event = await participantService.updateEvent(
         req.params.participantId, 
         req.params.eventId, 
-        req.body, 
-        req.user.id
+        req.body
       );
       res.status(200).json(event);
     } catch (error) {
@@ -117,8 +116,7 @@ const participantController = {
     try {
       const result = await participantService.removeEvent(
         req.params.participantId, 
-        req.params.eventId, 
-        req.user.id
+        req.params.eventId
       );
       res.status(200).json(result);
     } catch (error) {
@@ -136,7 +134,7 @@ const participantController = {
   // Remove a participant
   remove: async (req, res, next) => {
     try {
-      const result = await participantService.remove(req.params.id, req.user.id);
+      const result = await participantService.remove(req.params.id);
       res.status(200).json(result);
     } catch (error) {
       // Handle specific errors
