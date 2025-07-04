@@ -19,7 +19,7 @@ const getEntities = async entityType => {
 };
 
 const getEntityById = (entityType, id) =>
-  getEntities(entityType).then(arr => arr.find(e => e.id === id) || null);
+  getEntities(entityType).then(arr => arr.swimmers?.find(e => e.id === id) || null);
 
 const createEntity = async (entityType, data) =>
   atomicUpdate(getFilePath(entityType), (entities = []) => {

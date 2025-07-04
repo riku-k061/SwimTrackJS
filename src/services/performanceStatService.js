@@ -2,7 +2,6 @@
 const { v4: uuidv4 } = require('uuid');
 const fileOps = require('../utils/fileOps');
 const { performanceStatSchema } = require('../models/validation/performanceStatValidation');
-const logger = require('../utils/logger');
 const swimmerService = require('./swimmerService');
 
 const STATS_FILE = './data/performance-stats.json';
@@ -15,11 +14,12 @@ class PerformanceStatService {
 
   async init() {
     try {
-      this.stats = await fileOps.readJsonFile(STATS_FILE) || [];
+      this.stats = (await fileOps.readData(STATS_FILE) || {})?.performanceStats || [];
+      
     } catch (error) {
-      logger.warn('Could not load performance stats data, starting with empty dataset', error);
+      console.error('Could not load performance stats data, starting with empty dataset', error);
       this.stats = [];
-      await fileOps.writeJsonFile(STATS_FILE, this.stats);
+      await fileOps.writeData(STATS_FILE, this.stats);
     }
   }
 
@@ -51,7 +51,7 @@ class PerformanceStatService {
     };
 
     this.stats.push(newStat);
-    await fileOps.writeJsonFile(STATS_FILE, this.stats);
+    await fileOps.writeData(STATS_FILE, this.stats);
     return newStat;
   }
 
@@ -67,7 +67,7 @@ class PerformanceStatService {
     if (error) throw new Error(`Validation Error: ${error.details[0].message}`);
 
     this.stats[statIndex] = value;
-    await fileOps.writeJsonFile(STATS_FILE, this.stats);
+    await fileOps.writeData(STATS_FILE, this.stats);
     return value;
   }
 
@@ -77,7 +77,7 @@ class PerformanceStatService {
 
     const deletedStat = this.stats[statIndex];
     this.stats.splice(statIndex, 1);
-    await fileOps.writeJsonFile(STATS_FILE, this.stats);
+    await fileOps.writeData(STATS_FILE, this.stats);
     return deletedStat;
   }
 

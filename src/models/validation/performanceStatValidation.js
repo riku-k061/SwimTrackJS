@@ -1,10 +1,9 @@
-// src/models/validation/performanceStatValidation.js
 const Joi = require('joi');
 
 const performanceStatSchema = Joi.object({
   id: Joi.string().uuid().optional(),
-  swimmerId: Joi.string().uuid().required(),
-  date: Joi.date().iso().required(),
+  swimmerId: Joi.string().pattern(/^swimmer-[0-9]{3}$/).required(),
+  date: Joi.date().iso().optional(),
   
   // Event details
   stroke: Joi.string().valid('freestyle', 'backstroke', 'breaststroke', 'butterfly', 'individual medley').required(),
@@ -30,6 +29,18 @@ const performanceStatSchema = Joi.object({
   
   // Notes
   notes: Joi.string().optional(),
+  
+  // Status (root level status)
+  status: Joi.string().valid('registered', 'checked-in', 'withdrawn', 'completed').default('registered'),
+
+  // Events: The events are supposed to be within the stat object.
+  events: Joi.array().items(
+    Joi.object({
+      eventId: Joi.string().required(),
+      seedTime: Joi.string().pattern(/^[0-9]{2}:[0-5][0-9]\.[0-9]{2}$/).optional(),
+      status: Joi.string().valid('registered', 'checked-in', 'scratched', 'completed', 'disqualified').default('registered')
+    })
+  ).optional(),
   
   // Metadata
   createdAt: Joi.date().iso().default(() => new Date().toISOString()),
