@@ -1,0 +1,83 @@
+[
+  {
+    "id": "hf-001",
+    "swimmerId": "swimmer-001",
+    "recordDate": "2025-07-01T10:00:00Z",
+    "recordType": "biometric",
+    "metrics": {
+      "height": 183,
+      "weight": 75.5,
+      "bodyFat": 12.2,
+      "restingHeartRate": 52
+    },
+    "notes": "Pre-season baseline measurements",
+    "recordedBy": "coach-001",
+    "createdAt": "2025-07-01T10:30:00Z",
+    "updatedAt": "2025-07-01T10:30:00Z"
+  },
+  {
+    "id": "hf-002",
+    "swimmerId": "swimmer-001",
+    "recordDate": "2025-07-01T11:00:00Z",
+    "recordType": "fitness",
+    "metrics": {
+      "benchPress": 65,
+      "squats": 100,
+      "pullUps": 15,
+      "corePlank": 180
+    },
+    "notes": "Strength assessment",
+    "recordedBy": "coach-001",
+    "createdAt": "2025-07-01T11:30:00Z",
+    "updatedAt": "2025-07-01T11:30:00Z"
+  },
+  {
+    "id": "hf-003",
+    "swimmerId": "swimmer-002",
+    "recordDate": "2025-07-02T09:00:00Z",
+    "recordType": "wellness",
+    "metrics": {
+      "sleepHours": 7.5,
+      "sleepQuality": 8,
+      "stressLevel": 3,
+      "fatigue": 2,
+      "mood": 9
+    },
+    "notes": "Reporting good recovery after intense training block",
+    "recordedBy": "swimmer-002",
+    "createdAt": "2025-07-02T09:15:00Z",
+    "updatedAt": "2025-07-02T09:15:00Z"
+  },
+  {
+    "id": "hf-004",
+    "swimmerId": "swimmer-003",
+    "recordDate": "2025-06-28T14:00:00Z",
+    "recordType": "health",
+    "metrics": {
+      "injury": "Shoulder inflammation",
+      "treatment": "Physical therapy, reduced training load",
+      "status": "recovering",
+      "expectedRecovery": "2025-07-15"
+    },
+    "notes": "Follow-up evaluation scheduled for July 10",
+    "recordedBy": "coach-002",
+    "createdAt": "2025-06-28T14:30:00Z",
+    "updatedAt": "2025-07-03T09:00:00Z"
+  },
+  {
+    "swimmerId": "swimmer-003",
+    "recordDate": "2025-07-05T12:00:00Z",
+    "recordType": "biometric",
+    "metrics": {
+      "height": 185,
+      "weight": 80,
+      "bodyFat": 15,
+      "restingHeartRate": 55
+    },
+    "recordedBy": "coach-003",
+    "notes": "Mid-season performance",
+    "id": "hf-2e3da0b2-e1a8-4259-a921-a92211c4a82c",
+    "createdAt": "2025-07-07T03:34:19.066Z",
+    "updatedAt": "2025-07-07T03:34:19.066Z"
+  }
+]

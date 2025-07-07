@@ -12,16 +12,17 @@ class HealthFitnessService {
 
   async initializeData() {
     try {
-      this.healthFitnessData = await fileOps.readFile(HEALTH_FITNESS_FILE);
+      this.healthFitnessData = await fileOps.readData(HEALTH_FITNESS_FILE);
     } catch (error) {
       console.error('Error initializing health fitness data:', error);
       this.healthFitnessData = [];
-      await fileOps.writeFile(HEALTH_FITNESS_FILE, this.healthFitnessData);
+      await fileOps.writeData(HEALTH_FITNESS_FILE, this.healthFitnessData);
     }
   }
 
   async getAllRecords() {
-    return this.healthFitnessData;
+    const records= await fileOps.readData(HEALTH_FITNESS_FILE);
+    return records;
   }
   
   async getRecordById(id) {
@@ -63,16 +64,7 @@ class HealthFitnessService {
 
     // Add to data and save
     this.healthFitnessData.push(newRecord);
-    await fileOps.writeFile(HEALTH_FITNESS_FILE, this.healthFitnessData);
-    
-    // Audit the creation
-    await auditService.logAction({
-      action: 'create',
-      resourceType: 'health-fitness',
-      resourceId: newRecord.id,
-      userId: newRecord.recordedBy,
-      details: `Created ${newRecord.recordType} record for swimmer ${newRecord.swimmerId}`
-    });
+    await fileOps.writeData(HEALTH_FITNESS_FILE, this.healthFitnessData);
     
     return newRecord;
   }
@@ -98,16 +90,7 @@ class HealthFitnessService {
 
     // Save the updated record
     this.healthFitnessData[index] = updatedRecord;
-    await fileOps.writeFile(HEALTH_FITNESS_FILE, this.healthFitnessData);
-    
-    // Audit the update
-    await auditService.logAction({
-      action: 'update',
-      resourceType: 'health-fitness',
-      resourceId: id,
-      userId: updateData.recordedBy || 'system',
-      details: `Updated ${updatedRecord.recordType} record for swimmer ${updatedRecord.swimmerId}`
-    });
+    await fileOps.writeData(HEALTH_FITNESS_FILE, this.healthFitnessData);
     
     return updatedRecord;
   }
@@ -122,16 +105,7 @@ class HealthFitnessService {
     
     // Remove the record
     this.healthFitnessData.splice(index, 1);
-    await fileOps.writeFile(HEALTH_FITNESS_FILE, this.healthFitnessData);
-    
-    // Audit the deletion
-    await auditService.logAction({
-      action: 'delete',
-      resourceType: 'health-fitness',
-      resourceId: id,
-      userId,
-      details: `Deleted ${deletedRecord.recordType} record for swimmer ${deletedRecord.swimmerId}`
-    });
+    await fileOps.writeData(HEALTH_FITNESS_FILE, this.healthFitnessData);
     
     return deletedRecord;
   }

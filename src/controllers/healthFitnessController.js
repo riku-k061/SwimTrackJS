@@ -4,6 +4,8 @@ class HealthFitnessController {
   async getAllRecords(req, res, next) {
     try {
       const records = await healthFitnessService.getAllRecords();
+      console.log('records--->', records);
+      
       res.json(records);
     } catch (error) {
       next(error);
