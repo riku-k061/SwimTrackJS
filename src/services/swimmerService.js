@@ -4,6 +4,7 @@ const { validateSwimmer } = require('../models/validation/swimmerValidation');
 const db = require('../db');
 const indexManager = require('./indexManager');
 const { deleteWithRelationships } = require('../utils/relationshipManager');
+const { readData } = require('../utils/fileOps')
 
 // Initialize indexes
 indexManager.initialize().catch(console.error);
@@ -68,5 +69,25 @@ module.exports = {
       const age = indexManager.calcAge(s.dob);
       return age >= minAge && age <= maxAge;
     });
+  },
+
+  getSwimmerById: async (id) => {
+    const SWIMMERS_FILE = 'data/swimmers.json';
+    try {
+      // Read the swimmers data from the JSON file
+      const data = await readData(SWIMMERS_FILE);
+
+      // Find the swimmer by ID
+      const swimmer = data.find((swimmer) => swimmer.id === id);
+
+      // If swimmer not found, return null or throw an error as needed
+      if (!swimmer) {
+        throw new Error(`Swimmer with ID ${id} not found`);
+      }
+
+      return swimmer;
+    } catch (error) {
+      throw new Error(`Error fetching swimmer by ID: ${error.message}`);
+    }
   }
 };
