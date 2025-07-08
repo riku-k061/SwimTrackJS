@@ -1,100 +1,161 @@
-// src/services/registrationService.js
 const { readData, writeData } = require('../utils/fileOps');
-const { generateId } = require('../utils/idGenerator');
 const { validateRegistration } = require('../models/validation/registrationValidation');
-const { getSessionById } = require('./trainingSessionService');
-const { getSwimmerById } = require('./swimmerService');
+const { v4: uuidv4 } = require('uuid');
+const path = require('path');
 
-const REGISTRATIONS_FILE = 'data/session-registrations.json';
+const REGISTRATIONS_FILE = path.join(__dirname, '../../data/session-registrations.json');
 
-const getAllRegistrations = async () => {
-  const data = await readData(REGISTRATIONS_FILE);
-  return data.registrations || [];
-};
-
-const getRegistrationById = async (id) => {
-  const registrations = await getAllRegistrations();
-  return registrations.find(reg => reg.id === id);
-};
-
-const getRegistrationsBySwimmer = async (swimmerId) => {
-  const registrations = await getAllRegistrations();
-  return registrations.filter(reg => reg.swimmerId === swimmerId);
-};
-
-const getRegistrationsBySession = async (sessionId) => {
-  const registrations = await getAllRegistrations();
-  return registrations.filter(reg => reg.sessionId === sessionId);
-};
-
-const createRegistration = async (registration) => {
-  const { error, value } = validateRegistration(registration);
-  if (error) throw new Error(`Invalid registration data: ${error.message}`);
+const registrationService = {
+  // Get all registrations
+  getAllRegistrations: async (query = {}) => {
+    const registrations = await readData(REGISTRATIONS_FILE);
+    
+    // Apply filters if provided in query
+    if (Object.keys(query).length === 0) {
+      return registrations;
+    }
+    
+    return registrations.filter(registration => {
+      return Object.keys(query).every(key => {
+        if (key === 'strokes' && Array.isArray(query[key])) {
+          return query[key].some(stroke => registration.strokes.includes(stroke));
+        }
+        if (key === 'distances' && Array.isArray(query[key])) {
+          return query[key].some(distance => registration.distances.includes(Number(distance)));
+        }
+        return registration[key] === query[key];
+      });
+    });
+  },
   
-  const swimmer = await getSwimmerById(value.swimmerId);
-  if (!swimmer) throw new Error(`Swimmer ${value.swimmerId} not found`);
+  // Get registration by ID
+  getRegistrationById: async (registrationId) => {
+    const registrations = await readData(REGISTRATIONS_FILE);
+    return registrations.find(registration => registration.registrationId === registrationId);
+  },
   
-  const session = await getSessionById(value.sessionId);
-  if (!session) throw new Error(`Session ${value.sessionId} not found`);
+  // Get registrations by swimmer ID
+  getRegistrationsBySwimmerId: async (swimmerId) => {
+    const registrations = await readData(REGISTRATIONS_FILE);
+    return registrations.filter(registration => registration.swimmerId === swimmerId);
+  },
   
-  const sessionRegistrations = await getRegistrationsBySession(value.sessionId);
-  const confirmedRegistrations = sessionRegistrations.filter(reg => reg.status === 'confirmed');
+  // Get registrations by event ID
+  getRegistrationsByEventId: async (eventId) => {
+    const registrations = await readData(REGISTRATIONS_FILE);
+    return registrations.filter(registration => registration.eventId === eventId);
+  },
   
-  const newRegistration = {
-    ...value,
-    id: value.id || await generateId()
-  };
+  // Create a new registration
+  createRegistration: async (registrationData) => {
+    const { error, value } = validateRegistration(registrationData);
+    
+    if (error) {
+      throw new Error(`Validation error: ${error.details.map(d => d.message).join(', ')}`);
+    }
+    
+    const registrations = await readData(REGISTRATIONS_FILE);
+    
+    // Check if swimmer is already registered for this event
+    const existingRegistration = registrations.find(r => 
+      r.swimmerId === value.swimmerId && 
+      r.eventId === value.eventId && 
+      r.active === true
+    );
+    
+    if (existingRegistration) {
+      throw new Error('Swimmer is already registered for this event');
+    }
+    
+    const newRegistration = {
+      ...value,
+      registrationId: value.registrationId || uuidv4(),
+      registrationDate: value.registrationDate || new Date().toISOString()
+    };
+    
+    registrations.push(newRegistration);
+    await writeData(REGISTRATIONS_FILE, registrations);
+    
+    return newRegistration;
+  },
   
-  if (confirmedRegistrations.length >= session.capacity) {
-    newRegistration.status = 'waitlisted';
+  // Update a registration
+  updateRegistration: async (registrationId, updateData) => {
+    const registrations = await readData(REGISTRATIONS_FILE);
+    const index = registrations.findIndex(r => r.registrationId === registrationId);
+    
+    if (index === -1) {
+      throw new Error('Registration not found');
+    }
+    
+    // Don't allow changing swimmer or event
+    delete updateData.swimmerId;
+    delete updateData.eventId;
+    delete updateData.registrationId;
+    
+    const updatedRegistration = {
+      ...registrations[index],
+      ...updateData,
+      // Keep original IDs
+      registrationId: registrations[index].registrationId,
+      swimmerId: registrations[index].swimmerId,
+      eventId: registrations[index].eventId
+    };
+    
+    const { error, value } = validateRegistration(updatedRegistration);
+    if (error) {
+      throw new Error(`Validation error: ${error.details.map(d => d.message).join(', ')}`);
+    }
+    
+    registrations[index] = value;
+    await writeData(REGISTRATIONS_FILE, registrations);
+    
+    return value;
+  },
+  
+  // Cancel a registration
+  cancelRegistration: async (registrationId) => {
+    const registrations = await readData(REGISTRATIONS_FILE);
+    const index = registrations.findIndex(r => r.registrationId === registrationId);
+    
+    if (index === -1) {
+      throw new Error('Registration not found');
+    }
+    
+    registrations[index].active = false;
+    await writeData(REGISTRATIONS_FILE, registrations);
+    
+    return registrations[index];
+  },
+  
+  // Update qualification status
+  updateQualificationStatus: async (registrationId, status, method, timeStandardReference = null) => {
+    const validStatuses = ['qualified', 'pending', 'rejected'];
+    if (!validStatuses.includes(status)) {
+      throw new Error('Invalid qualification status');
+    }
+    
+    const registrations = await readData(REGISTRATIONS_FILE);
+    const index = registrations.findIndex(r => r.registrationId === registrationId);
+    
+    if (index === -1) {
+      throw new Error('Registration not found');
+    }
+    
+    registrations[index].qualificationStatus = status;
+    
+    if (method) {
+      registrations[index].qualificationMethod = method;
+    }
+    
+    if (timeStandardReference) {
+      registrations[index].timeStandardReference = timeStandardReference;
+    }
+    
+    await writeData(REGISTRATIONS_FILE, registrations);
+    
+    return registrations[index];
   }
-  
-  const registrations = await getAllRegistrations();
-  const data = { registrations: [...registrations, newRegistration] };
-  await writeData(REGISTRATIONS_FILE, data);
-  
-  return newRegistration;
 };
 
-const updateRegistration = async (id, updates) => {
-  const registration = await getRegistrationById(id);
-  if (!registration) throw new Error(`Registration ${id} not found`);
-  
-  const updatedRegistration = { ...registration, ...updates };
-  
-  const { error, value } = validateRegistration(updatedRegistration);
-  if (error) throw new Error(`Invalid registration data: ${error.message}`);
-  
-  const registrations = await getAllRegistrations();
-  const updatedRegistrations = registrations.map(reg => 
-    reg.id === id ? updatedRegistration : reg
-  );
-  
-  const data = { registrations: updatedRegistrations };
-  await writeData(REGISTRATIONS_FILE, data);
-  
-  return updatedRegistration;
-};
-
-const deleteRegistration = async (id) => {
-  const registration = await getRegistrationById(id);
-  if (!registration) throw new Error(`Registration ${id} not found`);
-  
-  const registrations = await getAllRegistrations();
-  const updatedRegistrations = registrations.filter(reg => reg.id !== id);
-  
-  const data = { registrations: updatedRegistrations };
-  await writeData(REGISTRATIONS_FILE, data);
-  
-  return registration;
-};
-
-module.exports = {
-  getAllRegistrations,
-  getRegistrationById,
-  getRegistrationsBySwimmer,
-  getRegistrationsBySession,
-  createRegistration,
-  updateRegistration,
-  deleteRegistration
-};
+module.exports = registrationService;
