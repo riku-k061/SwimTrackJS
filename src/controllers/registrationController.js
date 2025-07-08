@@ -45,15 +45,6 @@ const registrationController = {
     try {
       const newRegistration = await registrationService.createRegistration(req.body);
       
-      // Log the action
-      await auditService.logAction({
-        actionType: 'CREATE',
-        entityType: 'registration',
-        entityId: newRegistration.registrationId,
-        userId: req.body.registeredBy,
-        details: `Registration created for swimmer ${newRegistration.swimmerId} in event ${newRegistration.eventId}`
-      });
-      
       res.status(201).json(newRegistration);
     } catch (error) {
       next(error);

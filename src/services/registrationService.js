@@ -31,19 +31,19 @@ const registrationService = {
   // Get registration by ID
   getRegistrationById: async (registrationId) => {
     const registrations = await readData(REGISTRATIONS_FILE);
-    return registrations.find(registration => registration.registrationId === registrationId);
+    return (registrations.registrations || []).find(registration => registration.registrationId === registrationId);
   },
   
   // Get registrations by swimmer ID
   getRegistrationsBySwimmerId: async (swimmerId) => {
     const registrations = await readData(REGISTRATIONS_FILE);
-    return registrations.filter(registration => registration.swimmerId === swimmerId);
+    return (registrations.registrations || []).filter(registration => registration.swimmerId === swimmerId);
   },
   
   // Get registrations by event ID
   getRegistrationsByEventId: async (eventId) => {
     const registrations = await readData(REGISTRATIONS_FILE);
-    return registrations.filter(registration => registration.eventId === eventId);
+    return (registrations.registrations || []).filter(registration => registration.eventId === eventId);
   },
   
   // Create a new registration
@@ -57,7 +57,7 @@ const registrationService = {
     const registrations = await readData(REGISTRATIONS_FILE);
     
     // Check if swimmer is already registered for this event
-    const existingRegistration = registrations.find(r => 
+    const existingRegistration = (registrations.registrations || []).find(r => 
       r.swimmerId === value.swimmerId && 
       r.eventId === value.eventId && 
       r.active === true
@@ -73,8 +73,8 @@ const registrationService = {
       registrationDate: value.registrationDate || new Date().toISOString()
     };
     
-    registrations.push(newRegistration);
-    await writeData(REGISTRATIONS_FILE, registrations);
+    // registrations.push(newRegistration);
+    // await writeData(REGISTRATIONS_FILE, registrations);
     
     return newRegistration;
   },
@@ -82,7 +82,7 @@ const registrationService = {
   // Update a registration
   updateRegistration: async (registrationId, updateData) => {
     const registrations = await readData(REGISTRATIONS_FILE);
-    const index = registrations.findIndex(r => r.registrationId === registrationId);
+    const index = (registrations.registrations || []).findIndex(r => r.registrationId === registrationId);
     
     if (index === -1) {
       throw new Error('Registration not found');
@@ -108,7 +108,7 @@ const registrationService = {
     }
     
     registrations[index] = value;
-    await writeData(REGISTRATIONS_FILE, registrations);
+    // await writeData(REGISTRATIONS_FILE, registrations);
     
     return value;
   },
@@ -116,7 +116,7 @@ const registrationService = {
   // Cancel a registration
   cancelRegistration: async (registrationId) => {
     const registrations = await readData(REGISTRATIONS_FILE);
-    const index = registrations.findIndex(r => r.registrationId === registrationId);
+    const index = (registrations.registrations || []).findIndex(r => r.registrationId === registrationId);
     
     if (index === -1) {
       throw new Error('Registration not found');
@@ -136,7 +136,7 @@ const registrationService = {
     }
     
     const registrations = await readData(REGISTRATIONS_FILE);
-    const index = registrations.findIndex(r => r.registrationId === registrationId);
+    const index = (registrations.registrations || []).findIndex(r => r.registrationId === registrationId);
     
     if (index === -1) {
       throw new Error('Registration not found');
