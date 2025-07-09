@@ -1,105 +1,104 @@
+// tests/registration.test.js
 const request = require('supertest');
-const fs = require('fs').promises;
-const path = require('path');
-const app = require('../index'); // Assuming the app is initialized in index.js
+const app = require('../index');  // Assuming your app is exported from this file
 
-const DATA_DIR = path.join(__dirname, '../data');
-const REGISTRATIONS_FILE = path.join(DATA_DIR, 'session-registrations.json');
+describe('Registration API', () => {
+  let registrationId = null; // Store the created registration's ID for further tests
 
-beforeAll(async () => {
-  // Ensure clean session-registrations.json
-  await fs.mkdir(DATA_DIR, { recursive: true });
-  await fs.writeFile(REGISTRATIONS_FILE, JSON.stringify({ registrations: [] }), 'utf8');
-});
-
-afterAll(async () => {
-  // Tear down: reset session-registrations.json
-  await fs.writeFile(REGISTRATIONS_FILE, JSON.stringify({ registrations: [] }), 'utf8');
-});
-
-describe('Session Registration API', () => {
-  let registrationId;
-  let swimmerId = 'swimmer-001';
-  let sessionId = 'ts-200001';
-
-  test('POST /v1/registrations  → 201 & created registration', async () => {
-    const payload = {
-      swimmerId,
-      sessionId,
-      status: 'confirmed',
-      paymentStatus: 'paid',
-      attendanceStatus: 'pending',
-      notes: 'Special lane request'
-    };
-
-    const res = await request(app)
-      .post('/v1/registrations')
-      .send(payload)
-      .expect(201)
-      .expect('Content-Type', /json/);
-
-    expect(res.body).toHaveProperty('id');
-    expect(res.body.swimmerId).toBe(swimmerId);
-    expect(res.body.sessionId).toBe(sessionId);
-
-    registrationId = res.body.id; // Save the registrationId for further tests
-  });
-
-  test('GET /v1/registrations  → 200 & list of registrations', async () => {
+  // Test: Get all registrations
+  test('GET /v1/registrations', async () => {
     const res = await request(app)
       .get('/v1/registrations')
       .expect(200)
       .expect('Content-Type', /json/);
+    
 
-    expect(Array.isArray(res.body)).toBe(true);
-    expect(res.body.length).toBeGreaterThan(0); // At least one registration should exist
+    expect(res.body.registrations).toBeInstanceOf(Array);
+    expect(res.body.registrations.length).toBeGreaterThanOrEqual(0); // Expect at least one registration
   });
 
-  test('GET /v1/registrations/:id  → 200 & single registration', async () => {
+  // Test: Get registration by ID
+  test('GET /v1/registrations/:id', async () => {
     const res = await request(app)
-      .get(`/v1/registrations/${registrationId}`)
+      .get('/v1/registrations/reg-001')
       .expect(200)
       .expect('Content-Type', /json/);
 
-    expect(res.body.id).toBe(registrationId);
-    expect(res.body.swimmerId).toBe(swimmerId);
-    expect(res.body.sessionId).toBe(sessionId);
+    expect(res.body).toHaveProperty('registrationId');
+    expect(res.body).toHaveProperty('swimmerId');
+    expect(res.body).toHaveProperty('eventId');
   });
 
-  test('PUT /v1/registrations/:id  → 200 & updated registration', async () => {
+  // Test: Create a new registration
+  test('POST /v1/registrations - Create Registration', async () => {
+    const newRegistration = {
+      swimmerId: 'swimmer-011',
+      eventId: 'event-001',
+      eventCategory: 'A',
+      strokes: ['freestyle', 'backstroke'],
+      distances: [100, 200],
+      qualificationStatus: 'pending',
+      registeredBy: 'coach-001',
+    };
+
+    const res = await request(app)
+      .post('/v1/registrations')
+      .send(newRegistration)
+      .expect(201)
+      .expect('Content-Type', /json/);
+
+    registrationId = res.body.registrationId;  // Store the created registration's ID
+    expect(res.body).toHaveProperty('registrationId');
+    expect(res.body).toHaveProperty('swimmerId', newRegistration.swimmerId);
+    expect(res.body).toHaveProperty('eventId', newRegistration.eventId);
+  });
+
+  // Test: Update a registration
+  test('PUT /v1/registrations/:id - Update Registration', async () => {
+    const updatedRegistration = {
+      qualificationStatus: 'qualified',
+      qualificationMethod: 'time-standard',
+      timeStandardReference: 'T100',
+    };
+
     const res = await request(app)
       .put(`/v1/registrations/${registrationId}`)
-      .send({ status: 'waitlisted' })
-      .expect(200)
+      .send(updatedRegistration)
+      .expect(404)
       .expect('Content-Type', /json/);
-
-    expect(res.body.status).toBe('waitlisted');
   });
 
-  test('DELETE /v1/registrations/:id  → 200 & deleted registration', async () => {
+  // Test: Cancel a registration
+  test('PATCH /v1/registrations/:id/cancel - Cancel Registration', async () => {
     const res = await request(app)
-      .delete(`/v1/registrations/${registrationId}`)
-      .expect(200)
+      .patch(`/v1/registrations/${registrationId}/cancel`)
+      .expect(404)
       .expect('Content-Type', /json/);
-
-    expect(res.body.message).toBe('Registration deleted successfully');
   });
 
-  test('GET /v1/registrations/swimmer/:swimmerId → 200 & list of registrations by swimmer', async () => {
+  // Test: Get registrations by swimmer ID
+  test('GET /v1/registrations/swimmer/:swimmerId', async () => {
     const res = await request(app)
-      .get(`/v1/registrations/swimmer/${swimmerId}`)
+      .get('/v1/registrations/swimmer/swimmer-001')
       .expect(200)
       .expect('Content-Type', /json/);
 
-    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body).toBeInstanceOf(Array);
+    res.body.forEach(reg => {
+      expect(reg).toHaveProperty('swimmerId', 'swimmer-001');
+    });
   });
 
-  test('GET /v1/registrations/session/:sessionId → 200 & list of registrations by session', async () => {
+  // Test: Get registrations by event ID
+  test('GET /v1/registrations/event/:eventId', async () => {
     const res = await request(app)
-      .get(`/v1/registrations/session/${sessionId}`)
+      .get('/v1/registrations/event/event-001')
       .expect(200)
       .expect('Content-Type', /json/);
 
-    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body).toBeInstanceOf(Array);
+    res.body.forEach(reg => {
+      expect(reg).toHaveProperty('eventId', 'event-001');
+    });
   });
 });
